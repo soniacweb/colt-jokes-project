@@ -1,7 +1,7 @@
 import React from "react";
 import "./Joke.css";
 
-const Joke = ({ key, votes, upVote, downVote, text }) => {
+const Joke = ({ votes, upVote, downVote, text }) => {
   const getColor = () => {
     if (votes >= 15) {
       return "#4CAF50";
@@ -39,7 +39,7 @@ const Joke = ({ key, votes, upVote, downVote, text }) => {
   };
 
   return (
-    <div className="Joke" key={key}>
+    <div className="Joke">
       <div className="Joke-buttons">
         <i className="fas fa-arrow-up" onClick={upVote} />
         <span className="Joke-votes" style={{ borderColor: getColor() }}>

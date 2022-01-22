@@ -6,41 +6,40 @@ import "./Jokelist.css";
 import { v4 as uuidv4 } from "uuid";
 
 const JokeList = ({ numJokes }) => {
-  // const [jokes, setJokes] = useState([{ votes: 0, text: "" }]);
-  const [jokes, setJokes] = useState([]);
-
+  const [jokes, setJokes] = useState(
+    JSON.parse(window.localStorage.getItem("jokes") || "[]")
+  );
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    return jokes.length === 0 && dadJokes();
-  });
+  let seenJokes = new Set(jokes.map((joke) => joke.text));
+  console.log(seenJokes);
 
   const dadJokes = async () => {
-    let jokes = [];
-    try {
-      while (jokes.length < numJokes) {
-        let jokeRes = await axios.get("https://icanhazdadjoke.com/", {
-          headers: { Accept: "application/json" },
-        });
-        let newJoke = jokeRes.data.joke;
-        // if (!seenJokes.has(newJoke)) {
-        jokes.push({ id: uuidv4(), text: newJoke, votes: 0 });
-        // } else {
-        //   console.log("FOUND A DUPLICATE!");
-        //   console.log(newJoke);
-        // }
+    let jokesArray = [];
+    if (jokesArray.length === 0) {
+      try {
+        while (jokesArray.length < numJokes) {
+          let jokeRes = await axios.get("https://icanhazdadjoke.com/", {
+            headers: { Accept: "application/json" },
+          });
+          let newJoke = jokeRes.data.joke;
+          if (!seenJokes.has(newJoke)) {
+            jokesArray.push({ id: uuidv4(), text: newJoke, votes: 0 });
+            console.log(jokesArray);
+          } else {
+            console.log("FOUND A DUPLICATE!");
+            console.log(newJoke);
+          }
+        }
+        setJokes([...jokesArray, { votes: 0 }]);
+        setLoading(false);
+        setJokes(() => [...jokes, ...jokesArray]);
+      } catch (e) {
+        console.log(`Axios request failed! : ${e}`);
+        setLoading(false);
+        return e;
       }
-
-      setJokes([...jokes, { votes: 0 }]);
-      setLoading(false);
-    } catch (e) {
-      console.log(`Axios request failed! : ${e}`);
-      setLoading(false);
-      return e;
     }
   };
-
-  dadJokes();
 
   // creating a new object if its equal to the id passed in containing old jokes (previous state) and updating the votes
   const handleVote = (id, delta) => {
@@ -51,13 +50,17 @@ const JokeList = ({ numJokes }) => {
     );
   };
 
-  // console.log("jokessss", jokes);
+  useEffect(() => {
+    window.localStorage.setItem("jokes", JSON.stringify(jokes));
+  });
 
   const handleClick = () => {
-    setLoading(true, dadJokes);
+    setLoading(true);
+    dadJokes();
   };
 
-  //   let orderedJokes = jokes[0].sort((a, b) => b.votes - a.votes);
+  let orderedJokes = jokes.sort((a, b) => b.votes - a.votes);
+
   if (loading) {
     return (
       <div className="JokeList-spinner">
@@ -82,7 +85,7 @@ const JokeList = ({ numJokes }) => {
         </div>
 
         <div className="JokeList-jokes">
-          {jokes.map((joke) =>
+          {orderedJokes.map((joke) =>
             joke.text ? (
               <Joke
                 key={joke.id}
